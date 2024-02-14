@@ -1,0 +1,3 @@
+from daisytuner.benchmarking.benchmark import Benchmark
+from daisytuner.benchmarking.cpu_benchmark import CPUBenchmark
+from daisytuner.benchmarking.gpu_benchmark import GPUBenchmark
