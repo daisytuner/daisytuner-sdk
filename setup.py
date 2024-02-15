@@ -23,7 +23,6 @@ setup(
         "numpy>=1.23.0",
         "scipy>=1.12.0",
         "dace>=0.15.0",
-        "daisytuner-likwid>=0.0.1",
     ],
     extras_require={
         "dev": ["black==22.10.0", "pytest>=7.2.0", "pytest-cov>=4.1.0"],
