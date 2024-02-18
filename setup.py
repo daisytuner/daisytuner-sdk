@@ -26,6 +26,7 @@ setup(
     ],
     extras_require={
         "dev": ["black==22.10.0", "pytest>=7.2.0", "pytest-cov>=4.1.0"],
+        "profiling": ["daisytuner-likwid"],
     },
     include_package_data=True,
     package_data={

@@ -47,7 +47,7 @@ class CLI:
         print("Success! You're now logged in.")
         CLI._save_user(req.json())
 
-    def login():
+    def login(email: str = None, password: str = None):
         """
         Log in to the Daisytuner backend.
         """
@@ -55,8 +55,10 @@ class CLI:
         print()
 
         print("Log in with e-mail and password.")
-        email = input("E-Mail: ")
-        password = getpass.getpass("Password: ")
+        if email is None:
+            email = input("E-Mail: ")
+        if password is None:
+            password = getpass.getpass("Password: ")
 
         req = requests.post(
             "https://login-bhqsvyw3sa-uc.a.run.app",
