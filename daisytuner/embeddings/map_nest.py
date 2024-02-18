@@ -1,6 +1,6 @@
 import dace
 
-from typing import Generator
+from typing import Set
 
 from dace.sdfg.state import StateSubgraphView
 from dace.sdfg.analysis.cutout import SDFGCutout
@@ -51,10 +51,11 @@ class MapNest(StateSubgraphView):
     def root(self) -> dace.nodes.MapEntry:
         return self._root
 
-    def inputs(self, wcr_as_input: bool = True):
+    def inputs(self, wcr_as_input: bool = True) -> Set[dace.nodes.AccessNode]:
+        nodes = set()
         for dnode in self.data_nodes():
             if self.in_degree(dnode) == 0:
-                yield dnode
+                nodes.add(dnode)
             elif (
                 self.out_degree(dnode) == 0
                 and wcr_as_input
@@ -65,12 +66,17 @@ class MapNest(StateSubgraphView):
                     ]
                 )
             ):
-                yield dnode
+                nodes.add(dnode)
 
-    def outputs(self):
+        return nodes
+
+    def outputs(self) -> Set[dace.nodes.AccessNode]:
+        nodes = set()
         for dnode in self.data_nodes():
             if self.out_degree(dnode) == 0:
-                yield dnode
+                nodes.add(dnode)
+
+        return nodes
 
     def as_cutout(self) -> dace.SDFG:
         cutout = SDFGCutout.singlestate_cutout(

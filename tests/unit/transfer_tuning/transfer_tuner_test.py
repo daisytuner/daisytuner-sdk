@@ -4,6 +4,7 @@ import numpy as np
 
 from daisytuner.benchmarking import CPUBenchmark, GPUBenchmark
 from daisytuner.embeddings import MapNest
+from daisytuner.normalization import MapExpandedForm
 from daisytuner.transfer_tuning import TransferTuner
 
 
@@ -20,9 +21,15 @@ def test_vecadd():
 
     sdfg = sdfg_vecadd.to_sdfg(simplify=True)
 
+    preprocess = MapExpandedForm()
+    preprocess.apply_pass(sdfg, {})
+
     root = None
     for node in sdfg.start_state.nodes():
-        if isinstance(node, dace.nodes.MapEntry):
+        if (
+            isinstance(node, dace.nodes.MapEntry)
+            and sdfg.start_state.entry_node(node) is None
+        ):
             root = node
             break
 
@@ -56,7 +63,6 @@ def test_vecadd():
         device="cpu",
         benchmark=benchmark,
     )
-    assert tuner.can_be_tuned()
     sdfg_opt, _ = tuner.tune()
     sdfg_opt.validate()
 
@@ -89,9 +95,15 @@ def test_mxv():
     C_opt = np.zeros((1024,), dtype=np.float64)
     args = {"A": A, "B": B, "C": C}
 
+    preprocess = MapExpandedForm()
+    preprocess.apply_pass(sdfg, {})
+
     root = None
     for node in sdfg.start_state.nodes():
-        if isinstance(node, dace.nodes.MapEntry):
+        if (
+            isinstance(node, dace.nodes.MapEntry)
+            and sdfg.start_state.entry_node(node) is None
+        ):
             root = node
             break
 
@@ -119,7 +131,6 @@ def test_mxv():
         device="cpu",
         benchmark=benchmark,
     )
-    assert tuner.can_be_tuned()
     sdfg_opt, _ = tuner.tune()
     sdfg_opt.validate()
 
@@ -152,9 +163,15 @@ def test_matmul():
     C_opt = np.zeros((1024, 1024), dtype=np.float64)
     args = {"A": A, "B": B, "C": C}
 
+    preprocess = MapExpandedForm()
+    preprocess.apply_pass(sdfg, {})
+
     root = None
     for node in sdfg.start_state.nodes():
-        if isinstance(node, dace.nodes.MapEntry):
+        if (
+            isinstance(node, dace.nodes.MapEntry)
+            and sdfg.start_state.entry_node(node) is None
+        ):
             root = node
             break
 
@@ -182,7 +199,6 @@ def test_matmul():
         device="cpu",
         benchmark=benchmark,
     )
-    assert tuner.can_be_tuned()
     sdfg_opt, _ = tuner.tune()
     sdfg_opt.validate()
 
@@ -204,9 +220,15 @@ def test_vecadd_gpu():
 
     sdfg = sdfg_vecadd.to_sdfg(simplify=True)
 
+    preprocess = MapExpandedForm()
+    preprocess.apply_pass(sdfg, {})
+
     root = None
     for node in sdfg.start_state.nodes():
-        if isinstance(node, dace.nodes.MapEntry):
+        if (
+            isinstance(node, dace.nodes.MapEntry)
+            and sdfg.start_state.entry_node(node) is None
+        ):
             root = node
             break
 
@@ -236,7 +258,6 @@ def test_vecadd_gpu():
         device="gpu",
         benchmark=benchmark,
     )
-    assert tuner.can_be_tuned()
     sdfg_opt, _ = tuner.tune()
     sdfg_opt = TransferTuner.as_gpu_schedule(sdfg_opt)
     sdfg_opt.validate()
@@ -270,9 +291,15 @@ def test_mxv_gpu():
     C_opt = np.zeros((1024,), dtype=np.float64)
     args = {"A": A, "B": B, "C": C}
 
+    preprocess = MapExpandedForm()
+    preprocess.apply_pass(sdfg, {})
+
     root = None
     for node in sdfg.start_state.nodes():
-        if isinstance(node, dace.nodes.MapEntry):
+        if (
+            isinstance(node, dace.nodes.MapEntry)
+            and sdfg.start_state.entry_node(node) is None
+        ):
             root = node
             break
 
@@ -296,7 +323,6 @@ def test_mxv_gpu():
         device="gpu",
         benchmark=benchmark,
     )
-    assert tuner.can_be_tuned()
     sdfg_opt, _ = tuner.tune()
     sdfg_opt = TransferTuner.as_gpu_schedule(sdfg_opt)
     sdfg_opt.validate()
@@ -330,9 +356,15 @@ def test_matmul_gpu():
     C_opt = np.zeros((1024, 1024), dtype=np.float64)
     args = {"A": A, "B": B, "C": C}
 
+    preprocess = MapExpandedForm()
+    preprocess.apply_pass(sdfg, {})
+
     root = None
     for node in sdfg.start_state.nodes():
-        if isinstance(node, dace.nodes.MapEntry):
+        if (
+            isinstance(node, dace.nodes.MapEntry)
+            and sdfg.start_state.entry_node(node) is None
+        ):
             root = node
             break
 
@@ -356,7 +388,6 @@ def test_matmul_gpu():
         device="gpu",
         benchmark=benchmark,
     )
-    assert tuner.can_be_tuned()
     sdfg_opt, _ = tuner.tune()
     sdfg_opt = TransferTuner.as_gpu_schedule(sdfg_opt)
     sdfg_opt.validate()

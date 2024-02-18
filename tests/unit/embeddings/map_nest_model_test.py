@@ -47,7 +47,7 @@ def test_model_cpu():
     assert result["runtime"] > 0
     assert len(result["embedding"]) == 256
     assert set(result["node_embeddings"].keys()) == set(
-        [sdfg.start_state.node_id(node) for node in sdfg.start_state.nodes()]
+        [str(sdfg.start_state.node_id(node)) for node in sdfg.start_state.nodes()]
     )
 
 
@@ -90,5 +90,5 @@ def test_model_gpu():
     assert result["runtime"] > 0
     assert len(result["embedding"]) == 256
     assert set(result["node_embeddings"].keys()) == set(
-        [sdfg.start_state.node_id(node) for node in sdfg.start_state.nodes()]
+        [str(sdfg.start_state.node_id(node)) for node in sdfg.start_state.nodes()]
     )

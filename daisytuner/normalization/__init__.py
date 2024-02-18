@@ -3,4 +3,3 @@ from daisytuner.normalization.map_expanded_form import MapExpandedForm
 from daisytuner.normalization.map_inlining import MapInlining
 from daisytuner.normalization.maximal_map_fission import MaximalMapFission
 from daisytuner.normalization.stride_minimization import StrideMinimization
-from daisytuner.normalization.transfer_tuning_form import TransferTuningForm

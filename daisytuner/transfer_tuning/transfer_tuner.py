@@ -16,7 +16,6 @@ from daisytuner.benchmarking.benchmark import Benchmark
 from daisytuner.embeddings.map_nest import MapNest
 from daisytuner.embeddings.map_nest_model import MapNestModel
 from daisytuner.profiling.helpers import measure_safe
-from daisytuner.normalization.transfer_tuning_form import TransferTuningForm
 
 
 class TransferTuner:
@@ -76,8 +75,14 @@ class TransferTuner:
         best_nn = None
         for nn in tqdm(self._nearest_neighbors):
             candidate = self._map_nest.as_cutout()
-            pipeline = TransferTuningForm()
-            pipeline.apply_pass(candidate, {})
+            # Align schedules
+            for state in candidate.states():
+                for node in state.nodes():
+                    if not isinstance(node, dace.nodes.MapEntry):
+                        continue
+
+                    node.schedule = dace.ScheduleType.Sequential
+                    node.collapse = 1
 
             source = dace.SDFG.from_json(
                 json.loads(json.loads(nn["schedule"]["normal_form"]))
@@ -134,7 +139,7 @@ class TransferTuner:
             headers=headers,
             json={
                 "map_nest": self._map_nest.as_cutout().to_json(),
-                "device": self._device,
+                "device_type": self._device,
                 "collection_id": self._collection,
                 "topk": self._topk,
                 "benchmark": self._benchmark.data,
@@ -158,18 +163,20 @@ class TransferTuner:
             source_node_ids = list(subgraph.values())
             source_nodes = []
             target_nodes = []
-            cost_matrix = np.zeros(
-                (len(source_node_ids), target_node_embeddings.shape[0])
-            )
+            cost_matrix = np.zeros((len(source_node_ids), len(target_node_embeddings)))
             for i in range(cost_matrix.shape[0]):
                 source_node = source.start_state.node(source_node_ids[i])
-                source_node_emb = source_node_embeddings[source_node_ids[i]]
+                source_node_emb = np.array(
+                    source_node_embeddings[str(source_node_ids[i])]
+                )
                 source_nodes.append(source_node)
 
                 for j, target_node in enumerate(target.start_state.nodes()):
-                    target_node_emb = target_node_embeddings[
-                        target.start_state.node_id(target_node)
-                    ]
+                    target_node_emb = np.array(
+                        target_node_embeddings[
+                            str(target.start_state.node_id(target_node))
+                        ]
+                    )
                     if i == 0:
                         target_nodes.append(target_node)
 

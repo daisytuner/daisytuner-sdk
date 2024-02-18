@@ -34,11 +34,10 @@ class CLI:
             exit(0)
 
         req = requests.post(
-            "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=*",
+            "https://signup-bhqsvyw3sa-uc.a.run.app",
             json={
                 "email": email,
                 "password": password,
-                "returnSecureToken": True,
             },
         )
         if not req.ok:
@@ -60,11 +59,10 @@ class CLI:
         password = getpass.getpass("Password: ")
 
         req = requests.post(
-            "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=*",
+            "https://login-bhqsvyw3sa-uc.a.run.app",
             json={
                 "email": email,
                 "password": password,
-                "returnSecureToken": True,
             },
         )
         if not req.ok:
@@ -84,21 +82,21 @@ class CLI:
     def user():
         current_user = CLI._load_user()
 
-        # Refresh token
-        req = requests.post(
-            "https://securetoken.googleapis.com/v1/token?key=*",
-            json={
-                "grant_type": "refresh_token",
-                "refresh_token": current_user["refreshToken"],
-            },
-        )
-        if not req.ok:
-            raise ValueError("Authentication: Refresh token failed")
+        # # Refresh token
+        # req = requests.post(
+        #     "https://securetoken.googleapis.com/v1/token?key=*",
+        #     json={
+        #         "grant_type": "refresh_token",
+        #         "refresh_token": current_user["refreshToken"],
+        #     },
+        # )
+        # if not req.ok:
+        #     raise ValueError("Authentication: Refresh token failed")
 
-        payload = req.json()
-        current_user["refreshToken"] = payload["refresh_token"]
-        current_user["idToken"] = payload["id_token"]
-        CLI._save_user(current_user)
+        # payload = req.json()
+        # current_user["refreshToken"] = payload["refresh_token"]
+        # current_user["idToken"] = payload["id_token"]
+        # CLI._save_user(current_user)
 
         return current_user
 
