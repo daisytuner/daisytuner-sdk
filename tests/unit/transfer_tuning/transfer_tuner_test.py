@@ -1,5 +1,7 @@
+import os
 import copy
 import dace
+import pytest
 import numpy as np
 
 from daisytuner.benchmarking import CPUBenchmark, GPUBenchmark
@@ -207,6 +209,7 @@ def test_matmul():
     assert np.allclose(C, C_opt)
 
 
+@pytest.mark.skipif(os.getenv("GITHUB_ACTIONS") == "true", reason="CI")
 def test_vecadd_gpu():
     @dace.program
     def sdfg_vecadd(A: dace.float64[256], B: dace.float64[256], C: dace.float64[256]):
@@ -267,6 +270,7 @@ def test_vecadd_gpu():
     assert np.allclose(C, C_opt)
 
 
+@pytest.mark.skipif(os.getenv("GITHUB_ACTIONS") == "true", reason="CI")
 def test_mxv_gpu():
     N = dace.symbol("N")
     K = dace.symbol("K")
@@ -332,6 +336,7 @@ def test_mxv_gpu():
     assert np.allclose(C, C_opt)
 
 
+@pytest.mark.skipif(os.getenv("GITHUB_ACTIONS") == "true", reason="CI")
 def test_matmul_gpu():
     @dace.program
     def matmul(

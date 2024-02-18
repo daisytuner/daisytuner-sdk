@@ -1,4 +1,3 @@
-# Copyright 2022-2024 ETH Zurich and the Daisytuner authors.
 import platform
 import dace
 import pytest

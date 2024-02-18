@@ -1,0 +1,40 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    
+    name: Setup Conda
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+  
+      - uses: actions/checkout@v3
+      - name: Setup conda
+        uses: s-weigand/setup-conda@v1
+        with:
+          update-conda: true
+          python-version: 3.11
+          conda-channels: anaconda, conda-forge
+
+      - name: Install dependencies
+        run: |
+          conda install -c anaconda mkl mkl-include
+
+      - name: Install packages
+        run: |
+          pip install .[dev]
+
+      - name: Unit tests
+        run: |
+          daisytuner login ${{secrets.DAISYTUNER_TEST_ACCOUNT_EMAIL}} ${{secrets.DAISYTUNER_TEST_ACCOUNT_PASSWORD}}
+          pytest -v tests/unit
