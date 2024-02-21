@@ -203,23 +203,80 @@ class TransferTuner:
             # Instantiate transformation
             trans_target = copy.deepcopy(trans)
             trans_target["_subgraph"] = target_subgraph
-            xform_target = PatternTransformation.from_json(trans_target)
-            xform_target._sdfg = target
-            xform_target.state_id = target.node_id(target.start_state)
 
-            # Apply transformation
-            if xform_target.can_be_applied(
-                target.start_state, sdfg=target, expr_index=xform_target.expr_index
-            ):
-                xform_target.apply_pattern(append=True)
-                applied_transformations.append(xform_target.to_json())
+            # Replace sdfg-specific options
+            if self._align_transformation(target, trans_target):
+                xform_target = PatternTransformation.from_json(trans_target)
+                xform_target._sdfg = target
+                xform_target.state_id = target.node_id(target.start_state)
 
-                xform_source = PatternTransformation.from_json(trans)
-                xform_source._sdfg = source
-                xform_source.state_id = source.node_id(source.start_state)
-                xform_source.apply(source.start_state, source)
+                # Apply transformation
+                if xform_target.can_be_applied(
+                    target.start_state, sdfg=target, expr_index=xform_target.expr_index
+                ):
+                    xform_target.apply_pattern(append=True)
+                    applied_transformations.append(xform_target.to_json())
+
+            xform_source = PatternTransformation.from_json(trans)
+            xform_source._sdfg = source
+            xform_source.state_id = source.node_id(source.start_state)
+            xform_source.apply(source.start_state, source)
 
         return len(applied_transformations) > 0
+
+    def _align_transformation(self, sdfg: dace.SDFG, trans: Dict) -> bool:
+        subgraph = trans["_subgraph"]
+        transformation = trans["transformation"]
+
+        if transformation == "StripMining":
+            map_entry = sdfg.start_state.node(subgraph["0"])
+            dim_idx = trans["dim_idx"]
+            tile_size = int(trans["tile_size"])
+
+            start, stop, step = map_entry.map.range[dim_idx]
+            map_extend = dace.symbolic.int_floor((stop + 1 - start), step)
+            try:
+                map_extend = dace.symbolic.evaluate(map_extend, symbols=sdfg.constants)
+                if tile_size > map_extend:
+                    return False
+
+                divides_evenly = map_extend / tile_size
+                trans["divides_evenly"] = divides_evenly.is_integer
+            except:
+                trans["divides_evenly"] = False
+        elif transformation == "MapTiling":
+            map_entry = sdfg.start_state.node(subgraph["0"])
+            tile_size = int(trans["tile_sizes"][0])
+
+            trans["tile_trivial"] = False
+
+            start, stop, step = map_entry.map.range[0]
+            map_extend = dace.symbolic.int_floor((stop + 1 - start), step)
+            try:
+                map_extend = dace.symbolic.evaluate(map_extend, symbols=sdfg.constants)
+                if tile_size > map_extend:
+                    return False
+
+                divides_evenly = map_extend / tile_size
+                trans["divides_evenly"] = divides_evenly.is_integer
+            except:
+                trans["divides_evenly"] = False
+        elif transformation == "Vectorization":
+            map_entry = sdfg.start_state.node(subgraph["0"])
+            start, stop, step = map_entry.map.range[-1]
+            map_extend = dace.symbolic.int_floor((stop + 1 - start), step)
+
+            try:
+                map_extend = dace.symbolic.evaluate(map_extend, symbols=sdfg.constants)
+                divisor = map_extend / int(trans["vector_len"])
+                divides_evenly = divisor.is_integer
+                trans["postamble"] = not divides_evenly
+            except:
+                trans["postamble"] = True
+
+            trans["preamble"] = False
+
+        return True
 
     @staticmethod
     def default_gpu_schedule(cutout: dace.SDFG) -> dace.SDFG:

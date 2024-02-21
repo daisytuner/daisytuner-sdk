@@ -52,8 +52,8 @@ class CPUBenchmark(Benchmark):
         )
 
         print("Executing Benchmarks...")
-        data.update(Benchmark._stream_benchmark(num_cpus))
-        data.update(Benchmark._peakflops_benchmark(num_cpus))
+        data.update(CPUBenchmark._stream_benchmark(num_cpus))
+        data.update(CPUBenchmark._peakflops_benchmark(num_cpus))
 
         # Cache benchmark
         hostname = platform.node()
