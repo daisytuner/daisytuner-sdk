@@ -7,7 +7,7 @@ with open("README.md", "r") as fp:
 
 setup(
     name="daisytuner-sdk",
-    version="0.0.3",
+    version="0.0.4",
     description="An SDK for tuning SDFGs via the Daisytuner API",
     long_description=long_description,
     long_description_content_type="text/markdown",
